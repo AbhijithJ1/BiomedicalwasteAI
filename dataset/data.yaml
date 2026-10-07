@@ -1,0 +1,13 @@
+train: ../train/images
+val: ../valid/images
+test: ../test/images
+
+nc: 14
+names: ['fluid bottle', 'gauze', 'glass', 'glove', 'mask', 'needle', 'needle cap', 'paper', 'plastic', 'scrub', 'test tube', 'tube', 'unused gauze', 'used syringe']
+
+roboflow:
+  workspace: biowastemanagement
+  project: biomedical-waste-detection-nv7fq-bpeeu
+  version: 3
+  license: CC BY 4.0
+  url: https://universe.roboflow.com/biowastemanagement/biomedical-waste-detection-nv7fq-bpeeu/dataset/3

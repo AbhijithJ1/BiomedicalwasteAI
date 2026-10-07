@@ -1,0 +1,17 @@
+# Core Computer Vision & YOLO framework
+ultralytics>=8.3.0
+
+# Deep Learning Framework
+# Note: On CUDA-enabled machines, install the matching PyTorch CUDA build first:
+# e.g.: pip install torch torchvision --index-url https://download.pytorch.org/whl/cu121
+torch>=2.0.0
+torchvision>=0.15.0
+
+# Image & Video Processing
+opencv-python>=4.8.0
+pillow>=10.0.0
+
+# Plotting & Utilities
+pyyaml>=6.0
+matplotlib>=3.7.0
+numpy>=1.24.0

@@ -1,0 +1,44 @@
+# Virtual Environments
+.venv/
+venv/
+env/
+ENV/
+
+# Python bytecode & cache
+__pycache__/
+*.py[cod]
+*$py.class
+*.pyd
+.pytest_cache/
+
+# Ultralytics & Model Weights
+runs/
+*.pt
+*.onnx
+*.engine
+*.tflite
+models/*.pt
+models/*.onnx
+
+# Dataset archives
+*.zip
+*.tar
+*.tar.gz
+
+# Dataset images and labels (do NOT push dataset images to Git)
+dataset/train/
+dataset/valid/
+dataset/test/
+
+# Keep dataset configuration tracked
+!dataset/data.yaml
+!dataset/README*.txt
+
+# IDE & OS specific files
+.vscode/*
+!.vscode/BiomedicalWasteAI
+.idea/
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
