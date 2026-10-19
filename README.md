@@ -86,9 +86,12 @@ BiomedicalWasteAI/
 ├── src/
 │   ├── predict.py                   # Multi-source inference engine & COCO guard
 │   └── train.py                     # Configurable YOLO training script
+├── static/
+│   ├── css/style.css                # Modular dark glassmorphism styling system
+│   └── js/main.js                   # Client-side detection engine & UI controller
 ├── templates/
-│   └── index.html                   # Polished healthcare dashboard frontend
-├── app.py                           # Standalone HTTP server & prediction API
+│   └── index.html                   # Clean dashboard layout linking modular static assets
+├── app.py                           # Standalone HTTP server, static router & prediction API
 ├── evaluate.py                      # Benchmark evaluation script (test/valid)
 ├── predict.py                       # Root-level inference convenience CLI
 ├── requirements.txt                 # Python package dependencies

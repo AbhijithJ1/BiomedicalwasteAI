@@ -20,7 +20,7 @@ import json
 import os
 import sys
 import time
-from http.server import HTTPServer, SimpleHTTPRequestHandler
+from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 from io import BytesIO
 from pathlib import Path
 from typing import Any, Dict, List
@@ -187,6 +187,7 @@ BENCHMARK_COMPARISON = {
 
 
 TEMPLATES_DIR = Path(__file__).resolve().parent / "templates"
+STATIC_DIR = Path(__file__).resolve().parent / "static"
 INDEX_FILE = TEMPLATES_DIR / "index.html"
 
 
@@ -290,39 +291,76 @@ def make_request_handler(server_instance: BiomedicalWasteServer):
         def do_GET(self):
             parsed = urlparse(self.path)
             if parsed.path in ["/", "/index.html"]:
+                html_bytes = INDEX_FILE.read_bytes() if INDEX_FILE.exists() else HTML_PAGE.encode("utf-8")
                 self.send_response(200)
                 self.send_header("Content-Type", "text/html; charset=utf-8")
+                self.send_header("Content-Length", str(len(html_bytes)))
+                self.send_header("Cache-Control", "no-cache")
                 self.end_headers()
-                html_bytes = INDEX_FILE.read_bytes() if INDEX_FILE.exists() else HTML_PAGE.encode("utf-8")
                 self.wfile.write(html_bytes)
-            elif parsed.path == "/api/info":
-                self.send_response(200)
-                self.send_header("Content-Type", "application/json")
+            elif parsed.path == "/favicon.ico":
+                self.send_response(204)
+                self.send_header("Content-Length", "0")
                 self.end_headers()
+            elif parsed.path == "/api/info":
                 payload = {
                     "model_name": "YOLOv11n Custom Biomedical Model",
                     "num_classes": len(server_instance.model.names),
                     "classes": server_instance.model.names,
                 }
-                self.wfile.write(json.dumps(payload).encode("utf-8"))
-            elif parsed.path == "/api/metrics":
+                body = json.dumps(payload).encode("utf-8")
                 self.send_response(200)
                 self.send_header("Content-Type", "application/json")
+                self.send_header("Content-Length", str(len(body)))
                 self.end_headers()
-                self.wfile.write(json.dumps(BENCHMARK_COMPARISON).encode("utf-8"))
+                self.wfile.write(body)
+            elif parsed.path == "/api/metrics":
+                body = json.dumps(BENCHMARK_COMPARISON).encode("utf-8")
+                self.send_response(200)
+                self.send_header("Content-Type", "application/json")
+                self.send_header("Content-Length", str(len(body)))
+                self.end_headers()
+                self.wfile.write(body)
             elif parsed.path.startswith("/api/sample/"):
                 sample_name = parsed.path.replace("/api/sample/", "")
                 sample_file = Path("dataset/sample_test_images") / sample_name
                 if not sample_file.exists():
                     sample_file = Path("dataset/test/images") / sample_name
                 if sample_file.exists():
+                    img_data = sample_file.read_bytes()
                     self.send_response(200)
                     self.send_header("Content-Type", "image/jpeg")
+                    self.send_header("Content-Length", str(len(img_data)))
                     self.end_headers()
-                    with open(sample_file, "rb") as f:
-                        self.wfile.write(f.read())
+                    self.wfile.write(img_data)
                 else:
                     self.send_error(404, f"Sample file not found: {sample_name}")
+            elif parsed.path.startswith("/static/"):
+                rel_path = parsed.path[len("/static/"):].lstrip("/")
+                static_file = (STATIC_DIR / rel_path).resolve()
+                if static_file.is_file() and str(static_file).startswith(str(STATIC_DIR.resolve())):
+                    ext = static_file.suffix.lower()
+                    mime_types = {
+                        ".css": "text/css; charset=utf-8",
+                        ".js": "application/javascript; charset=utf-8",
+                        ".svg": "image/svg+xml",
+                        ".png": "image/png",
+                        ".jpg": "image/jpeg",
+                        ".jpeg": "image/jpeg",
+                        ".webp": "image/webp",
+                        ".json": "application/json; charset=utf-8",
+                        ".ico": "image/x-icon",
+                    }
+                    content_type = mime_types.get(ext, "application/octet-stream")
+                    data = static_file.read_bytes()
+                    self.send_response(200)
+                    self.send_header("Content-Type", content_type)
+                    self.send_header("Content-Length", str(len(data)))
+                    self.send_header("Cache-Control", "no-cache")
+                    self.end_headers()
+                    self.wfile.write(data)
+                else:
+                    self.send_error(404, f"Static asset not found: {parsed.path}")
             else:
                 self.send_error(404, "Not Found")
 
@@ -353,10 +391,12 @@ def make_request_handler(server_instance: BiomedicalWasteServer):
                         img_bytes = base64.b64decode(raw_b64)
                         img = Image.open(BytesIO(img_bytes)).convert("RGB")
                     except Exception as e:
+                        err_b = json.dumps({"error": f"JSON decode error: {e}"}).encode("utf-8")
                         self.send_response(400)
                         self.send_header("Content-Type", "application/json")
+                        self.send_header("Content-Length", str(len(err_b)))
                         self.end_headers()
-                        self.wfile.write(json.dumps({"error": f"JSON decode error: {e}"}).encode("utf-8"))
+                        self.wfile.write(err_b)
                         return
 
                 # Handle Multipart / Form-Data fallback
@@ -377,44 +417,52 @@ def make_request_handler(server_instance: BiomedicalWasteServer):
                                     file_bytes = header_body[1].rstrip(b"\r\n")
                                     img = Image.open(BytesIO(file_bytes)).convert("RGB")
                     except Exception as e:
+                        err_b = json.dumps({"error": f"Multipart parse error: {e}"}).encode("utf-8")
                         self.send_response(400)
                         self.send_header("Content-Type", "application/json")
+                        self.send_header("Content-Length", str(len(err_b)))
                         self.end_headers()
-                        self.wfile.write(json.dumps({"error": f"Multipart parse error: {e}"}).encode("utf-8"))
+                        self.wfile.write(err_b)
                         return
 
                 if img is None:
+                    err_b = json.dumps({"error": "No valid image data received"}).encode("utf-8")
                     self.send_response(400)
                     self.send_header("Content-Type", "application/json")
+                    self.send_header("Content-Length", str(len(err_b)))
                     self.end_headers()
-                    self.wfile.write(json.dumps({"error": "No valid image data received"}).encode("utf-8"))
+                    self.wfile.write(err_b)
                     return
 
                 try:
                     results = server_instance.predict_pil_or_cv(img, conf=conf, iou=iou, imgsz=imgsz)
+                    resp_b = json.dumps(results).encode("utf-8")
                     self.send_response(200)
                     self.send_header("Content-Type", "application/json")
+                    self.send_header("Content-Length", str(len(resp_b)))
                     self.end_headers()
-                    self.wfile.write(json.dumps(results).encode("utf-8"))
+                    self.wfile.write(resp_b)
                 except Exception as e:
+                    err_b = json.dumps({"error": str(e)}).encode("utf-8")
                     self.send_response(500)
                     self.send_header("Content-Type", "application/json")
+                    self.send_header("Content-Length", str(len(err_b)))
                     self.end_headers()
-                    self.wfile.write(json.dumps({"error": str(e)}).encode("utf-8"))
+                    self.wfile.write(err_b)
 
     return CustomHandler
 
 
-def run_app(weights: str = "models/best.pt", port: int = 7860, device: str = "cpu"):
+def run_app(weights: str = "models/best.pt", host: str = "0.0.0.0", port: int = 7860, device: str = "cpu"):
     server_obj = BiomedicalWasteServer(weights_path=weights, device=device, port=port)
     handler_class = make_request_handler(server_obj)
-    httpd = HTTPServer(("127.0.0.1", port), handler_class)
+    httpd = ThreadingHTTPServer((host, port), handler_class)
+    httpd.daemon_threads = True
 
-    url = f"http://127.0.0.1:{port}"
     print("=" * 75)
     print("BIOMEDICAL WASTE DETECTION AI - LIVE APPLICATION RUNNING")
     print("=" * 75)
-    print(f"Local Access URL : {url}")
+    print(f"Local Access URL : http://localhost:{port} (or http://127.0.0.1:{port})")
     print(f"Active Checkpoint: {server_obj.weights_path}")
     print(f"Device           : {device.upper()}")
     print("Press Ctrl+C to terminate the server.")
@@ -430,11 +478,12 @@ def run_app(weights: str = "models/best.pt", port: int = 7860, device: str = "cp
 def main():
     parser = argparse.ArgumentParser(description="Biomedical Waste Detection AI Live Web Interface")
     parser.add_argument("--weights", type=str, default="models/best.pt", help="Path to best.pt weights")
+    parser.add_argument("--host", type=str, default="0.0.0.0", help="Web server host binding (default: 0.0.0.0)")
     parser.add_argument("--port", type=int, default=7860, help="Web server port (default: 7860)")
     parser.add_argument("--device", type=str, default="cpu", help="Compute device (default: cpu)")
     args = parser.parse_args()
 
-    run_app(weights=args.weights, port=args.port, device=args.device)
+    run_app(weights=args.weights, host=args.host, port=args.port, device=args.device)
 
 
 if __name__ == "__main__":
