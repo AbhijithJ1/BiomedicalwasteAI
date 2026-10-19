@@ -25,6 +25,7 @@ runs/
 *.tflite
 models/*.pt
 models/*.onnx
+!models/best.pt
 
 # Dataset archives
 *.zip
