@@ -1,0 +1,2269 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BiomedicalWasteAI — Intelligent Detection & Segregation</title>
+  <meta name="description" content="AI-powered biomedical waste detection and intelligent segregation using custom YOLOv11n. Real-time classification for 14 hospital waste categories.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    /* =========================================================
+       HEALTHCARE & SUSTAINABILITY DESIGN SYSTEM
+       Clean white/light theme with Emerald and Teal Accents
+    ========================================================= */
+    :root {
+      --bg: #f8fafc;
+      --bg-alt: #f1f5f9;
+      --surface: #ffffff;
+      --surface-hover: #f8fafc;
+      --border: #e2e8f0;
+      --border-focus: #0d9488;
+      
+      --text-main: #0f172a;
+      --text-muted: #475569;
+      --text-dim: #94a3b8;
+      
+      /* Primary Brand: Medical Emerald & Hospital Teal */
+      --primary: #059669;
+      --primary-hover: #047857;
+      --primary-light: #ecfdf5;
+      --primary-border: #a7f3d0;
+      
+      --teal: #0d9488;
+      --teal-light: #f0fdfa;
+      --teal-border: #99f6e4;
+      
+      /* Biomedical Segregation Bin Standards */
+      --yellow-bin-text: #b45309;
+      --yellow-bin-bg: #fffbeb;
+      --yellow-bin-border: #fde68a;
+      --yellow-bin-pill: #d97706;
+      
+      --red-bin-text: #dc2626;
+      --red-bin-bg: #fef2f2;
+      --red-bin-border: #fecaca;
+      --red-bin-pill: #ef4444;
+      
+      --white-bin-text: #334155;
+      --white-bin-bg: #f8fafc;
+      --white-bin-border: #cbd5e1;
+      --white-bin-pill: #64748b;
+      
+      --blue-bin-text: #0284c7;
+      --blue-bin-bg: #f0f9ff;
+      --blue-bin-border: #bae6fd;
+      --blue-bin-pill: #0284c7;
+      
+      --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+      --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.07), 0 2px 4px -2px rgba(0, 0, 0, 0.05);
+      --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.08), 0 4px 6px -4px rgba(0, 0, 0, 0.04);
+      --shadow-card: 0 4px 20px -2px rgba(15, 23, 42, 0.06), 0 2px 6px -1px rgba(15, 23, 42, 0.04);
+      
+      --radius-sm: 8px;
+      --radius-md: 12px;
+      --radius-lg: 16px;
+      --radius-xl: 20px;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    }
+
+    h1, h2, h3, h4, .brand-title, .metric-val {
+      font-family: 'Outfit', sans-serif;
+    }
+
+    body {
+      background-color: var(--bg);
+      color: var(--text-main);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      line-height: 1.5;
+    }
+
+    /* =========================================================
+       NAVIGATION BAR & HEADER
+    ========================================================= */
+    .navbar {
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border);
+      position: sticky;
+      top: 0;
+      z-index: 50;
+    }
+
+    .nav-container {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 12px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 16px;
+    }
+
+    .brand-wrap {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      text-decoration: none;
+    }
+
+    .brand-logo {
+      width: 42px;
+      height: 42px;
+      background: linear-gradient(135deg, #059669 0%, #0d9488 100%);
+      border-radius: var(--radius-md);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #ffffff;
+      font-size: 22px;
+      box-shadow: 0 4px 12px rgba(5, 150, 105, 0.25);
+    }
+
+    .brand-title {
+      font-size: 22px;
+      font-weight: 800;
+      color: var(--text-main);
+      letter-spacing: -0.5px;
+      line-height: 1.1;
+    }
+
+    .brand-title span {
+      color: var(--primary);
+    }
+
+    .brand-subtitle {
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.6px;
+    }
+
+    .nav-status {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .status-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: var(--primary-light);
+      border: 1px solid var(--primary-border);
+      color: #065f46;
+      padding: 6px 14px;
+      border-radius: 9999px;
+      font-size: 12px;
+      font-weight: 600;
+    }
+
+    .status-pulse {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #059669;
+      box-shadow: 0 0 0 0 rgba(5, 150, 105, 0.7);
+      animation: pulse-ring 1.8s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+    }
+
+    @keyframes pulse-ring {
+      0% { box-shadow: 0 0 0 0 rgba(5, 150, 105, 0.7); }
+      70% { box-shadow: 0 0 0 6px rgba(5, 150, 105, 0); }
+      100% { box-shadow: 0 0 0 0 rgba(5, 150, 105, 0); }
+    }
+
+    /* Navigation Tabs */
+    .nav-tabs-bar {
+      background: #ffffff;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .tabs-container {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 0 24px;
+      display: flex;
+      gap: 6px;
+      overflow-x: auto;
+    }
+
+    .tab-btn {
+      padding: 12px 18px;
+      background: transparent;
+      border: none;
+      border-bottom: 2px solid transparent;
+      color: var(--text-muted);
+      font-size: 13.5px;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      transition: all 0.2s ease;
+      white-space: nowrap;
+    }
+
+    .tab-btn:hover {
+      color: var(--primary);
+      background: var(--bg-alt);
+    }
+
+    .tab-btn.active {
+      color: var(--primary);
+      border-bottom-color: var(--primary);
+      background: rgba(5, 150, 105, 0.04);
+    }
+
+    /* =========================================================
+       HERO OVERVIEW BANNER
+    ========================================================= */
+    .hero-banner {
+      background: linear-gradient(180deg, #ffffff 0%, var(--bg) 100%);
+      border-bottom: 1px solid var(--border);
+      padding: 24px 24px 18px;
+    }
+
+    .hero-container {
+      max-width: 1400px;
+      margin: 0 auto;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 16px;
+    }
+
+    .hero-text h1 {
+      font-size: 24px;
+      font-weight: 700;
+      color: var(--text-main);
+      margin-bottom: 4px;
+      letter-spacing: -0.3px;
+    }
+
+    .hero-text p {
+      font-size: 13.5px;
+      color: var(--text-muted);
+      max-width: 720px;
+    }
+
+    .bin-legend-wrap {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .bin-legend-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 5px 12px;
+      border-radius: var(--radius-sm);
+      font-size: 11.5px;
+      font-weight: 700;
+      border: 1px solid;
+    }
+
+    .bin-pill-yellow {
+      background: var(--yellow-bin-bg);
+      color: var(--yellow-bin-text);
+      border-color: var(--yellow-bin-border);
+    }
+    .bin-pill-red {
+      background: var(--red-bin-bg);
+      color: var(--red-bin-text);
+      border-color: var(--red-bin-border);
+    }
+    .bin-pill-white {
+      background: var(--white-bin-bg);
+      color: var(--white-bin-text);
+      border-color: var(--white-bin-border);
+    }
+    .bin-pill-blue {
+      background: var(--blue-bin-bg);
+      color: var(--blue-bin-text);
+      border-color: var(--blue-bin-border);
+    }
+
+    .bin-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+    }
+
+    /* =========================================================
+       MAIN WORKSPACE LAYOUT
+    ========================================================= */
+    .main-content {
+      flex: 1;
+      max-width: 1400px;
+      width: 100%;
+      margin: 0 auto;
+      padding: 24px;
+    }
+
+    .grid-workspace {
+      display: grid;
+      grid-template-columns: 460px 1fr;
+      gap: 24px;
+    }
+
+    @media (max-width: 1100px) {
+      .grid-workspace {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    /* Card Panels */
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 20px;
+      box-shadow: var(--shadow-card);
+      margin-bottom: 20px;
+    }
+
+    .card-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 16px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .card-title {
+      font-size: 16px;
+      font-weight: 700;
+      color: var(--text-main);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .card-badge {
+      font-size: 11px;
+      font-weight: 600;
+      padding: 3px 8px;
+      border-radius: var(--radius-sm);
+      background: var(--bg-alt);
+      color: var(--text-muted);
+    }
+
+    /* =========================================================
+       UPLOAD DROPZONE & PREVIEW
+    ========================================================= */
+    .dropzone {
+      border: 2px dashed #cbd5e1;
+      border-radius: var(--radius-md);
+      padding: 28px 16px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.25s ease;
+      background: #fafafa;
+      position: relative;
+    }
+
+    .dropzone:hover, .dropzone.dragover {
+      border-color: var(--primary);
+      background: var(--primary-light);
+    }
+
+    .dropzone-icon {
+      width: 48px;
+      height: 48px;
+      margin: 0 auto 12px;
+      border-radius: 50%;
+      background: #ffffff;
+      box-shadow: var(--shadow-sm);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 22px;
+      color: var(--primary);
+      border: 1px solid var(--border);
+    }
+
+    .dropzone-title {
+      font-size: 14.5px;
+      font-weight: 700;
+      color: var(--text-main);
+      margin-bottom: 4px;
+    }
+
+    .dropzone-desc {
+      font-size: 12px;
+      color: var(--text-muted);
+      margin-bottom: 14px;
+    }
+
+    .btn-browse {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 7px 16px;
+      background: #ffffff;
+      border: 1px solid #cbd5e1;
+      border-radius: var(--radius-sm);
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text-main);
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .btn-browse:hover {
+      border-color: var(--primary);
+      color: var(--primary);
+      box-shadow: var(--shadow-sm);
+    }
+
+    /* File Selected State */
+    .file-selected-bar {
+      display: none;
+      align-items: center;
+      justify-content: space-between;
+      background: var(--teal-light);
+      border: 1px solid var(--teal-border);
+      padding: 10px 14px;
+      border-radius: var(--radius-sm);
+      margin-top: 12px;
+    }
+
+    .file-info-group {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      overflow: hidden;
+    }
+
+    .file-thumb-mini {
+      width: 36px;
+      height: 36px;
+      border-radius: 6px;
+      object-fit: cover;
+      border: 1px solid var(--border);
+    }
+
+    .file-details {
+      font-size: 12px;
+      line-height: 1.3;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .file-name {
+      font-weight: 700;
+      color: var(--text-main);
+    }
+
+    .file-size {
+      color: var(--text-muted);
+      font-size: 11px;
+    }
+
+    .btn-remove-file {
+      background: transparent;
+      border: none;
+      color: #94a3b8;
+      cursor: pointer;
+      padding: 4px 6px;
+      font-size: 14px;
+      border-radius: 4px;
+    }
+
+    .btn-remove-file:hover {
+      color: #ef4444;
+      background: rgba(239, 68, 68, 0.1);
+    }
+
+    /* Primary Action Button */
+    .btn-predict {
+      width: 100%;
+      margin: 14px 0 0;
+      padding: 12px 18px;
+      background: linear-gradient(135deg, #059669 0%, #0d9488 100%);
+      border: none;
+      border-radius: var(--radius-md);
+      color: #ffffff;
+      font-size: 14px;
+      font-weight: 700;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      box-shadow: 0 4px 14px rgba(5, 150, 105, 0.3);
+      transition: all 0.2s ease;
+    }
+
+    .btn-predict:hover:not(:disabled) {
+      background: linear-gradient(135deg, #047857 0%, #0f766e 100%);
+      box-shadow: 0 6px 18px rgba(5, 150, 105, 0.4);
+      transform: translateY(-1px);
+    }
+
+    .btn-predict:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+      transform: none;
+      box-shadow: none;
+    }
+
+    /* Sliders */
+    .controls-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+      background: var(--bg-alt);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      padding: 14px;
+      margin-top: 14px;
+    }
+
+    .control-label {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 11.5px;
+      font-weight: 700;
+      color: var(--text-muted);
+      margin-bottom: 6px;
+      text-transform: uppercase;
+      letter-spacing: 0.4px;
+    }
+
+    .control-val {
+      font-family: 'Outfit', sans-serif;
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--primary);
+    }
+
+    input[type="range"] {
+      width: 100%;
+      height: 6px;
+      background: #cbd5e1;
+      border-radius: 9999px;
+      outline: none;
+      -webkit-appearance: none;
+      accent-color: var(--primary);
+    }
+
+    /* Samples Section */
+    .samples-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+      margin-top: 8px;
+    }
+
+    .sample-chip {
+      background: #ffffff;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 8px;
+      text-align: left;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .sample-chip:hover {
+      border-color: var(--primary);
+      box-shadow: var(--shadow-sm);
+      background: var(--primary-light);
+      transform: translateY(-1px);
+    }
+
+    .sample-name {
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--text-main);
+    }
+
+    .sample-bin-tag {
+      font-size: 10px;
+      font-weight: 600;
+      color: var(--text-muted);
+    }
+
+    /* =========================================================
+       DUAL PREVIEW VISUALIZER
+    ========================================================= */
+    .view-toggle-bar {
+      display: flex;
+      gap: 6px;
+      background: var(--bg-alt);
+      padding: 3px;
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--border);
+    }
+
+    .view-btn {
+      padding: 5px 12px;
+      border-radius: 6px;
+      border: none;
+      background: transparent;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text-muted);
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+
+    .view-btn.active {
+      background: #ffffff;
+      color: var(--primary);
+      box-shadow: var(--shadow-sm);
+    }
+
+    .previews-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      margin-top: 14px;
+    }
+
+    .previews-grid.single-view {
+      grid-template-columns: 1fr;
+    }
+
+    @media (max-width: 768px) {
+      .previews-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .preview-box {
+      background: #f8fafc;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .preview-header {
+      padding: 8px 14px;
+      background: #ffffff;
+      border-bottom: 1px solid var(--border);
+      font-size: 11.5px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: var(--text-muted);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .preview-stage {
+      height: 320px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: #f1f5f9;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .preview-stage img {
+      max-width: 100%;
+      max-height: 100%;
+      object-fit: contain;
+      display: block;
+    }
+
+    .empty-stage-text {
+      font-size: 13px;
+      color: var(--text-dim);
+      text-align: center;
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+    }
+
+    /* Loading Overlay */
+    .loading-overlay {
+      position: absolute;
+      inset: 0;
+      background: rgba(255, 255, 255, 0.85);
+      backdrop-filter: blur(4px);
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      z-index: 10;
+    }
+
+    .spinner {
+      width: 36px;
+      height: 36px;
+      border: 3px solid rgba(5, 150, 105, 0.2);
+      border-top-color: var(--primary);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    /* =========================================================
+       DETECTION & SEGREGATION RESULTS SECTION
+    ========================================================= */
+    .results-summary-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 12px;
+      background: var(--bg-alt);
+      border: 1px solid var(--border);
+      padding: 10px 16px;
+      border-radius: var(--radius-md);
+      margin-bottom: 16px;
+    }
+
+    .summary-stat {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 13px;
+    }
+
+    .summary-stat-val {
+      font-weight: 800;
+      color: var(--primary);
+    }
+
+    /* Clean scan zero detections */
+    .clean-scan-card {
+      background: var(--primary-light);
+      border: 1px solid var(--primary-border);
+      border-radius: var(--radius-md);
+      padding: 18px 20px;
+      display: flex;
+      align-items: flex-start;
+      gap: 14px;
+      margin-bottom: 16px;
+    }
+
+    .clean-scan-icon {
+      font-size: 24px;
+      color: var(--primary);
+    }
+
+    .clean-scan-title {
+      font-size: 14.5px;
+      font-weight: 700;
+      color: #065f46;
+      margin-bottom: 2px;
+    }
+
+    .clean-scan-desc {
+      font-size: 12.5px;
+      color: #047857;
+      line-height: 1.4;
+    }
+
+    /* Error card */
+    .error-card {
+      background: #fef2f2;
+      border: 1px solid #fecaca;
+      border-radius: var(--radius-md);
+      padding: 16px 18px;
+      color: #991b1b;
+      font-size: 13px;
+      display: none;
+      margin-bottom: 16px;
+    }
+
+    /* Segregation Item Card */
+    .segregation-list {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .item-card {
+      background: #ffffff;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      padding: 14px 18px;
+      box-shadow: var(--shadow-sm);
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 12px;
+      align-items: center;
+      transition: all 0.2s;
+    }
+
+    .item-card:hover {
+      border-color: #cbd5e1;
+      box-shadow: var(--shadow-md);
+    }
+
+    .item-main-info {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .item-title-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .item-name {
+      font-size: 15px;
+      font-weight: 700;
+      text-transform: capitalize;
+      color: var(--text-main);
+    }
+
+    .confidence-badge {
+      font-size: 11px;
+      font-weight: 700;
+      padding: 2px 7px;
+      border-radius: var(--radius-sm);
+      background: var(--bg-alt);
+      color: var(--primary);
+    }
+
+    .item-category {
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+
+    .item-disposal {
+      font-size: 11.5px;
+      color: var(--text-main);
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      margin-top: 3px;
+    }
+
+    .item-disposal strong {
+      color: var(--text-muted);
+    }
+
+    .item-hazard {
+      font-size: 11px;
+      color: #dc2626;
+      font-weight: 600;
+    }
+
+    .item-bin-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 14px;
+      border-radius: var(--radius-sm);
+      font-size: 12px;
+      font-weight: 700;
+      border: 1px solid;
+      white-space: nowrap;
+    }
+
+    /* =========================================================
+       WEBCAM WORKSPACE
+    ========================================================= */
+    .webcam-layout {
+      display: grid;
+      grid-template-columns: 1fr 340px;
+      gap: 24px;
+    }
+
+    @media (max-width: 992px) {
+      .webcam-layout {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .webcam-viewport {
+      background: #0f172a;
+      border-radius: var(--radius-md);
+      position: relative;
+      aspect-ratio: 4 / 3;
+      max-height: 480px;
+      width: 100%;
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    #webcam-video {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+    }
+
+    #webcam-canvas {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+    }
+
+    .webcam-overlay-placeholder {
+      position: absolute;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 12px;
+      color: #94a3b8;
+      text-align: center;
+      padding: 20px;
+    }
+
+    .webcam-controls-bar {
+      display: flex;
+      gap: 10px;
+      margin-top: 14px;
+      flex-wrap: wrap;
+    }
+
+    .btn-cam {
+      padding: 9px 18px;
+      border-radius: var(--radius-sm);
+      font-size: 13px;
+      font-weight: 700;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      border: 1px solid;
+      transition: all 0.2s;
+    }
+
+    .btn-cam-start {
+      background: var(--primary);
+      color: #ffffff;
+      border-color: var(--primary);
+    }
+    .btn-cam-start:hover {
+      background: var(--primary-hover);
+    }
+
+    .btn-cam-stop {
+      background: #ffffff;
+      color: #dc2626;
+      border-color: #fca5a5;
+    }
+    .btn-cam-stop:hover {
+      background: #fef2f2;
+    }
+
+    .btn-cam-freeze {
+      background: #ffffff;
+      color: var(--text-main);
+      border-color: var(--border);
+    }
+    .btn-cam-freeze:hover {
+      background: var(--bg-alt);
+    }
+
+    /* Live Detections Feed List */
+    .live-feed-list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      max-height: 380px;
+      overflow-y: auto;
+    }
+
+    .live-item-row {
+      background: #ffffff;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 8px 12px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 12.5px;
+    }
+
+    /* =========================================================
+       ANALYTICS & GUIDELINES TAB STYLES
+    ========================================================= */
+    .info-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+
+    .info-metric-card {
+      background: #ffffff;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      padding: 16px;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .info-metric-label {
+      font-size: 11.5px;
+      font-weight: 700;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 4px;
+    }
+
+    .info-metric-val {
+      font-size: 22px;
+      font-weight: 800;
+      color: var(--primary);
+    }
+
+    .info-metric-desc {
+      font-size: 11px;
+      color: var(--text-dim);
+      margin-top: 2px;
+    }
+
+    .data-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+      text-align: left;
+    }
+
+    .data-table th {
+      background: var(--bg-alt);
+      padding: 10px 14px;
+      font-weight: 700;
+      color: var(--text-muted);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .data-table td {
+      padding: 10px 14px;
+      border-bottom: 1px solid var(--border);
+      color: var(--text-main);
+    }
+
+    .data-table tr:hover {
+      background: var(--bg-alt);
+    }
+
+    .classes-pill-grid {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 12px;
+    }
+
+    .class-tag {
+      background: #ffffff;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 6px 12px;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text-main);
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .guideline-bin-card {
+      border-radius: var(--radius-md);
+      padding: 20px;
+      margin-bottom: 16px;
+      border: 1px solid;
+    }
+
+    .hidden {
+      display: none !important;
+    }
+
+    /* Modal Image Fullscreen */
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(15, 23, 42, 0.75);
+      backdrop-filter: blur(4px);
+      z-index: 100;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+    }
+
+    .modal-content {
+      background: #ffffff;
+      border-radius: var(--radius-lg);
+      max-width: 90vw;
+      max-height: 90vh;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      box-shadow: var(--shadow-lg);
+    }
+
+    .modal-header {
+      padding: 12px 18px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .modal-body {
+      padding: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: #0f172a;
+      overflow: auto;
+    }
+
+    .modal-body img {
+      max-width: 100%;
+      max-height: 80vh;
+      object-fit: contain;
+    }
+
+    /* Footer */
+    footer {
+      background: #ffffff;
+      border-top: 1px solid var(--border);
+      padding: 20px 24px;
+      font-size: 12px;
+      color: var(--text-muted);
+      text-align: center;
+      margin-top: auto;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Top Navigation & Brand Header -->
+  <nav class="navbar">
+    <div class="nav-container">
+      <div class="brand-wrap">
+        <div class="brand-logo">🌿</div>
+        <div>
+          <div class="brand-title">Biomedical<span>WasteAI</span></div>
+          <div class="brand-subtitle">Intelligent Detection & Real-Time Segregation</div>
+        </div>
+      </div>
+      <div class="nav-status">
+        <div class="status-badge">
+          <div class="status-pulse"></div>
+          <span id="system-status-text">AI Segregation Engine Active</span>
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Navigation Tabs -->
+  <div class="nav-tabs-bar">
+    <div class="tabs-container">
+      <button id="tab-btn-detection" class="tab-btn active" onclick="switchTab('detection')">
+        🔬 Image Detection Workspace
+      </button>
+      <button id="tab-btn-webcam" class="tab-btn" onclick="switchTab('webcam')">
+        📹 Real-Time Webcam Feed
+      </button>
+      <button id="tab-btn-system" class="tab-btn" onclick="switchTab('system')">
+        📊 Model Performance & Categories
+      </button>
+      <button id="tab-btn-guidelines" class="tab-btn" onclick="switchTab('guidelines')">
+        📋 Hospital BMW Segregation Rules
+      </button>
+    </div>
+  </div>
+
+  <!-- Hero Overview Banner -->
+  <header class="hero-banner">
+    <div class="hero-container">
+      <div class="hero-text">
+        <h1>Computer Vision-Powered Hospital Waste Segregation</h1>
+        <p>Real-time automated object detection and hazard classification across 14 biomedical waste classes according to CPCB and WHO color-coded bin regulations.</p>
+      </div>
+      <div class="bin-legend-wrap">
+        <div class="bin-legend-pill bin-pill-yellow">
+          <span class="bin-dot" style="background: var(--yellow-bin-pill);"></span> Yellow: Soiled / Infectious
+        </div>
+        <div class="bin-legend-pill bin-pill-red">
+          <span class="bin-dot" style="background: var(--red-bin-pill);"></span> Red: Recyclable Plastics
+        </div>
+        <div class="bin-legend-pill bin-pill-white">
+          <span class="bin-dot" style="background: var(--white-bin-pill);"></span> White: Puncture Sharps
+        </div>
+        <div class="bin-legend-pill bin-pill-blue">
+          <span class="bin-dot" style="background: var(--blue-bin-pill);"></span> Blue: Glassware & Implants
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Container -->
+  <main class="main-content">
+
+    <!-- =======================================================
+         TAB 1: DETECTION WORKSPACE
+    ======================================================= -->
+    <div id="tab-content-detection">
+      <div class="grid-workspace">
+        
+        <!-- Left Column: Inputs & Controls -->
+        <div>
+          <!-- Card: Input Source -->
+          <div class="card">
+            <div class="card-header">
+              <div class="card-title">📷 Medical Waste Input</div>
+              <span id="timing-chip" class="card-badge">Ready</span>
+            </div>
+
+            <!-- Drag and Drop Zone -->
+            <div class="dropzone" id="dropzone" onclick="document.getElementById('file-input').click()">
+              <div class="dropzone-icon">📥</div>
+              <div class="dropzone-title">Upload Waste Sample</div>
+              <div class="dropzone-desc">Drag & drop image here, paste from clipboard (Ctrl+V), or browse local files</div>
+              <button type="button" class="btn-browse" onclick="event.stopPropagation(); document.getElementById('file-input').click()">
+                📂 Browse Image File
+              </button>
+              <input type="file" id="file-input" class="hidden" accept="image/jpeg,image/png,image/webp" onchange="handleFileSelect(event)">
+            </div>
+
+            <!-- File Selected Status -->
+            <div id="file-selected-bar" class="file-selected-bar">
+              <div class="file-info-group">
+                <img id="file-thumb" class="file-thumb-mini" alt="Preview">
+                <div class="file-details">
+                  <div id="selected-file-name" class="file-name">sample.jpg</div>
+                  <div id="selected-file-size" class="file-size">120 KB</div>
+                </div>
+              </div>
+              <button class="btn-remove-file" title="Clear image" onclick="clearSelectedImage()">✕</button>
+            </div>
+
+            <!-- Primary Detect Button -->
+            <button id="btn-detect" class="btn-predict" onclick="triggerDetection()" disabled>
+              <span id="btn-detect-icon">🔍</span>
+              <span id="btn-detect-text">Detect & Segregate Waste</span>
+            </button>
+
+            <!-- Detection Threshold Sliders -->
+            <div class="controls-grid">
+              <div>
+                <div class="control-label">
+                  <span>Confidence</span>
+                  <span id="conf-val" class="control-val">25%</span>
+                </div>
+                <input type="range" id="slider-conf" min="0.10" max="0.90" step="0.05" value="0.25" oninput="updateParam('conf', this.value)">
+              </div>
+              <div>
+                <div class="control-label">
+                  <span>NMS IoU</span>
+                  <span id="iou-val" class="control-val">45%</span>
+                </div>
+                <input type="range" id="slider-iou" min="0.20" max="0.75" step="0.05" value="0.45" oninput="updateParam('iou', this.value)">
+              </div>
+            </div>
+          </div>
+
+          <!-- Card: Benchmark Samples -->
+          <div class="card">
+            <div class="card-header">
+              <div class="card-title">🧪 Quick Benchmark Samples</div>
+              <span class="card-badge">Test Set Images</span>
+            </div>
+            <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 10px;">Select a verified test set sample for instant evaluation:</p>
+            <div class="samples-grid">
+              <div class="sample-chip" onclick="loadSampleImage('gloves_009_jpg.rf.83286b4512232845714a3d27e98728a7.jpg', 'Nitrile Gloves')">
+                <div class="sample-name">🧤 Gloves</div>
+                <div class="sample-bin-tag">Red Plastic Bin</div>
+              </div>
+              <div class="sample-chip" onclick="loadSampleImage('mask_002_jpg.rf.94129827eceec4062e5aaeacca35f1de.jpg', 'Surgical Mask')">
+                <div class="sample-name">😷 Mask</div>
+                <div class="sample-bin-tag">Yellow Soiled Bin</div>
+              </div>
+              <div class="sample-chip" onclick="loadSampleImage('gauze_022_jpg.rf.432c8f61cb64ff11f654c2f95afe5e73.jpg', 'Cotton Gauze')">
+                <div class="sample-name">🩹 Gauze</div>
+                <div class="sample-bin-tag">Yellow Soiled Bin</div>
+              </div>
+              <div class="sample-chip" onclick="loadSampleImage('needles_015_jpg.rf.8a8d25d22c03f08d2e17c0d2b96eb64d.jpg', 'Hypodermic Needle')">
+                <div class="sample-name">💉 Needle</div>
+                <div class="sample-bin-tag">White Sharps Bin</div>
+              </div>
+              <div class="sample-chip" onclick="loadSampleImage('syringe_015_jpg.rf.cd8eac031a8a91d3199ca951cf2c4954.jpg', 'Used Syringe')">
+                <div class="sample-name">💉 Syringe</div>
+                <div class="sample-bin-tag">White Sharps Bin</div>
+              </div>
+              <div class="sample-chip" onclick="loadSampleImage('plastic_022_jpg.rf.b1e7d2060361919a3777b54cf0e76186.jpg', 'Plastic Waste')">
+                <div class="sample-name">🧴 Plastic</div>
+                <div class="sample-bin-tag">Red Plastic Bin</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Right Column: Visualizer & Segregation Results -->
+        <div>
+          <!-- Card: Visualizer -->
+          <div class="card">
+            <div class="card-header">
+              <div class="card-title">👁️ Dual Image Inspection</div>
+              <div class="view-toggle-bar">
+                <button id="view-mode-dual" class="view-btn active" onclick="setViewMode('dual')">Side-by-Side</button>
+                <button id="view-mode-annotated" class="view-btn" onclick="setViewMode('annotated')">Detections Only</button>
+                <button id="view-mode-original" class="view-btn" onclick="setViewMode('original')">Original Only</button>
+              </div>
+            </div>
+
+            <!-- Preview Viewports -->
+            <div id="previews-container" class="previews-grid">
+              
+              <!-- Left: Original Image -->
+              <div id="preview-col-original" class="preview-box">
+                <div class="preview-header">
+                  <span>Original Input</span>
+                  <span id="original-res-text" style="color: var(--text-dim);">—</span>
+                </div>
+                <div class="preview-stage">
+                  <div id="original-empty" class="empty-stage-text">
+                    <span>🖼️</span>
+                    <span>No image uploaded</span>
+                  </div>
+                  <img id="img-original" class="hidden" alt="Original Input">
+                </div>
+              </div>
+
+              <!-- Right: Annotated Detection -->
+              <div id="preview-col-annotated" class="preview-box">
+                <div class="preview-header">
+                  <span>YOLO11n Detections</span>
+                  <button id="btn-maximize" class="btn-browse" style="padding: 2px 8px; font-size: 11px;" onclick="openFullscreenModal()" disabled>🔍 Zoom</button>
+                </div>
+                <div class="preview-stage">
+                  <div id="annotated-empty" class="empty-stage-text">
+                    <span>🎯</span>
+                    <span>Awaiting inference run</span>
+                  </div>
+                  <img id="img-annotated" class="hidden" alt="Annotated Detections">
+                  
+                  <!-- Loading overlay -->
+                  <div id="inference-loading" class="loading-overlay">
+                    <div class="spinner"></div>
+                    <div style="font-size: 13px; font-weight: 700; color: var(--primary);">Analyzing waste items...</div>
+                  </div>
+                </div>
+              </div>
+
+            </div>
+          </div>
+
+          <!-- Card: Segregation Recommendations -->
+          <div class="card">
+            <div class="card-header">
+              <div class="card-title">🏷️ Intelligent Segregation Guidance</div>
+              <span id="results-count-badge" class="card-badge">0 items detected</span>
+            </div>
+
+            <!-- Results Summary Bar -->
+            <div class="results-summary-bar">
+              <div class="summary-stat">
+                <span>Detections:</span>
+                <span id="stat-detections-num" class="summary-stat-val">0</span>
+              </div>
+              <div class="summary-stat">
+                <span>Inference Latency:</span>
+                <span id="stat-latency-val" class="summary-stat-val">—</span>
+              </div>
+              <div class="summary-stat">
+                <span>Disposal Protocols:</span>
+                <span id="stat-bins-summary" style="font-weight: 700; color: var(--text-main);">—</span>
+              </div>
+            </div>
+
+            <!-- Error Banner -->
+            <div id="error-banner" class="error-card"></div>
+
+            <!-- Zero Detections Card -->
+            <div id="zero-detections-banner" class="clean-scan-card hidden">
+              <div class="clean-scan-icon">🛡️</div>
+              <div>
+                <div class="clean-scan-title">No Biomedical Waste Detected</div>
+                <div class="clean-scan-desc">No biomedical waste items were detected above the current confidence threshold (<span id="zero-conf-text">25%</span>). If items are visible, try lowering the confidence slider or test with a clearer perspective.</div>
+              </div>
+            </div>
+
+            <!-- Detected Items Segregation List -->
+            <div id="segregation-list" class="segregation-list">
+              <div style="padding: 20px; text-align: center; color: var(--text-dim); font-size: 13px;">
+                Upload an image or pick a test sample above to see itemized binning protocols.
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- =======================================================
+         TAB 2: REAL-TIME WEBCAM FEED
+    ======================================================= -->
+    <div id="tab-content-webcam" class="hidden">
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">📹 Real-Time Video Stream Inference</div>
+          <span id="webcam-status-chip" class="card-badge">Camera Standby</span>
+        </div>
+
+        <div class="webcam-layout">
+          <!-- Video Screen -->
+          <div>
+            <div class="webcam-viewport">
+              <video id="webcam-video" autoplay playsinline muted></video>
+              <canvas id="webcam-canvas"></canvas>
+              <div id="webcam-placeholder" class="webcam-overlay-placeholder">
+                <span style="font-size: 36px;">📷</span>
+                <div style="font-weight: 700; color: #ffffff;">Webcam Stream Not Active</div>
+                <div style="font-size: 12px; max-width: 320px;">Click "Start Camera" below to grant browser permissions and begin continuous real-time YOLO11 waste detection.</div>
+              </div>
+            </div>
+
+            <!-- Webcam Action Controls -->
+            <div class="webcam-controls-bar">
+              <button id="btn-cam-start" class="btn-cam btn-cam-start" onclick="startCamera()">
+                ▶ Start Camera
+              </button>
+              <button id="btn-cam-stop" class="btn-cam btn-cam-stop hidden" onclick="stopCamera()">
+                ⏹ Stop Camera
+              </button>
+              <button id="btn-cam-freeze" class="btn-cam btn-cam-freeze hidden" onclick="toggleFreezeCamera()">
+                ⏸ Freeze Frame
+              </button>
+            </div>
+            
+            <p style="font-size: 11.5px; color: var(--text-dim); margin-top: 10px;">
+              ℹ️ Real-time camera processing captures live video frames and continuously classifies biomedical waste items.
+            </p>
+          </div>
+
+          <!-- Live Items Feed -->
+          <div>
+            <div class="card-header" style="margin-bottom: 10px;">
+              <div style="font-size: 14px; font-weight: 700;">Live Detected Objects</div>
+              <span id="live-items-count" class="card-badge">0 items</span>
+            </div>
+            <div id="live-webcam-list" class="live-feed-list">
+              <div style="padding: 24px; text-align: center; color: var(--text-dim); font-size: 12.5px;">
+                Start the camera to stream live segregation alerts.
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- =======================================================
+         TAB 3: SYSTEM INFO & MODEL ARCHITECTURE
+    ======================================================= -->
+    <div id="tab-content-system" class="hidden">
+      <!-- Performance Metrics Overview -->
+      <div class="info-grid">
+        <div class="info-metric-card">
+          <div class="info-metric-label">Architecture</div>
+          <div class="info-metric-val">YOLOv11n</div>
+          <div class="info-metric-desc">Real-Time Object Detection</div>
+        </div>
+        <div class="info-metric-card">
+          <div class="info-metric-label">Waste Categories</div>
+          <div class="info-metric-val">14 Classes</div>
+          <div class="info-metric-desc">CPCB & WHO Segregation Standards</div>
+        </div>
+        <div class="info-metric-card">
+          <div class="info-metric-label">Detection mAP@50</div>
+          <div class="info-metric-val">93.9%</div>
+          <div class="info-metric-desc">Test Set Benchmark</div>
+        </div>
+        <div class="info-metric-card">
+          <div class="info-metric-label">Overall Precision</div>
+          <div class="info-metric-val">89.7%</div>
+          <div class="info-metric-desc">Verified Detection Accuracy</div>
+        </div>
+      </div>
+
+      <!-- Verified Test Metrics -->
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">📈 Verified Model Performance on Test Split</div>
+          <span class="card-badge">50-Epoch Checkpoint Evaluation</span>
+        </div>
+        <div style="overflow-x: auto;">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Model Version</th>
+                <th>Precision</th>
+                <th>Recall</th>
+                <th>mAP @ 50</th>
+                <th>mAP @ 50-95</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><strong>Baseline (5 Epochs)</strong></td>
+                <td>72.7%</td>
+                <td>77.6%</td>
+                <td>78.4%</td>
+                <td>58.5%</td>
+                <td><span class="card-badge">Superseded</span></td>
+              </tr>
+              <tr style="background: var(--primary-light);">
+                <td><strong>Current Model (50 Epochs)</strong></td>
+                <td><strong style="color: var(--primary);">89.7%</strong></td>
+                <td><strong style="color: var(--primary);">91.7%</strong></td>
+                <td><strong style="color: var(--primary);">93.9%</strong></td>
+                <td><strong style="color: var(--primary);">71.6%</strong></td>
+                <td><span class="status-badge" style="padding: 2px 8px; font-size: 11px;">Active In Production</span></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- 14 Classes List -->
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">🏷️ 14 Target Biomedical Waste Classes</div>
+          <span class="card-badge">Loaded from Checkpoint</span>
+        </div>
+        <p style="font-size: 12.5px; color: var(--text-muted);">
+          The active model is trained exclusively on custom hospital waste categories. Fallback to generic COCO classes is strictly disabled.
+        </p>
+        <div id="classes-list-container" class="classes-pill-grid">
+          <!-- Populated dynamically via /api/info -->
+        </div>
+      </div>
+    </div>
+
+    <!-- =======================================================
+         TAB 4: HOSPITAL BMW GUIDELINES
+    ======================================================= -->
+    <div id="tab-content-guidelines" class="hidden">
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">📋 Biomedical Waste Management Rules (CPCB & WHO)</div>
+          <span class="card-badge">Regulatory Protocol</span>
+        </div>
+        
+        <div class="guideline-bin-card" style="background: var(--yellow-bin-bg); border-color: var(--yellow-bin-border);">
+          <h3 style="color: var(--yellow-bin-text); margin-bottom: 6px;">🟡 Yellow Container (Soiled / Anatomical / Infectious Waste)</h3>
+          <p style="font-size: 13px; color: var(--text-main); margin-bottom: 6px;">
+            <strong>Accepted Items:</strong> Cotton gauze, cotton swabs, soiled surgical masks, contaminated hospital scrubs, surgical linen, discarded clinical paper, body tissues, expired medicines.
+          </p>
+          <p style="font-size: 12px; color: var(--text-muted);">
+            <strong>Disposal Standard:</strong> Incineration at 1050°C in double-chamber incinerators or high-temperature Plasma Pyrolysis followed by secured landfill disposal.
+          </p>
+        </div>
+
+        <div class="guideline-bin-card" style="background: var(--red-bin-bg); border-color: var(--red-bin-border);">
+          <h3 style="color: var(--red-bin-text); margin-bottom: 6px;">🔴 Red Container (Contaminated Recyclable Plastics)</h3>
+          <p style="font-size: 13px; color: var(--text-main); margin-bottom: 6px;">
+            <strong>Accepted Items:</strong> Nitrile & latex gloves, IV fluid bottles, intravenous catheters, urine bags, dialysis tubes, syringes without needles.
+          </p>
+          <p style="font-size: 12px; color: var(--text-muted);">
+            <strong>Disposal Standard:</strong> Chemical sterilization with 1-2% sodium hypochlorite / autoclaving, followed by shredding and controlled plastic recycling.
+          </p>
+        </div>
+
+        <div class="guideline-bin-card" style="background: var(--white-bin-bg); border-color: var(--white-bin-border);">
+          <h3 style="color: var(--white-bin-text); margin-bottom: 6px;">⚪ White Container (Puncture-Proof Sharps Box)</h3>
+          <p style="font-size: 13px; color: var(--text-main); margin-bottom: 6px;">
+            <strong>Accepted Items:</strong> Hypodermic needles, scalpels, surgical blades, contaminated needle caps, syringes with fixed needles.
+          </p>
+          <p style="font-size: 12px; color: var(--text-muted);">
+            <strong>Disposal Standard:</strong> Needle tip cutter at point of use, autoclaving / dry heat sterilization, followed by shredding and encapsulation in concrete.
+          </p>
+        </div>
+
+        <div class="guideline-bin-card" style="background: var(--blue-bin-bg); border-color: var(--blue-bin-border);">
+          <h3 style="color: var(--blue-bin-text); margin-bottom: 6px;">🔵 Blue Container (Cardboard Box with Blue Marking)</h3>
+          <p style="font-size: 13px; color: var(--text-main); margin-bottom: 6px;">
+            <strong>Accepted Items:</strong> Glass vials, medicine ampoules, glass specimen test tubes, orthopedic metal implants.
+          </p>
+          <p style="font-size: 12px; color: var(--text-muted);">
+            <strong>Disposal Standard:</strong> Autoclave or immersion in 1% sodium hypochlorite disinfectant, followed by cullet glass recycling.
+          </p>
+        </div>
+
+        <div style="background: var(--bg-alt); border-radius: var(--radius-sm); padding: 14px; font-size: 12px; color: var(--text-muted);">
+          ⚖️ <strong>Academic Prototype Notice:</strong> This software is an engineering proof-of-concept for automated vision-assisted hospital segregation. It must complement, not replace, certified clinical waste management protocols.
+        </div>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- Fullscreen Image Modal -->
+  <div id="image-modal" class="modal-backdrop" onclick="closeFullscreenModal()">
+    <div class="modal-content" onclick="event.stopPropagation()">
+      <div class="modal-header">
+        <span style="font-weight: 700; font-size: 14px;">High-Resolution Detection View</span>
+        <button class="btn-browse" style="padding: 4px 10px;" onclick="closeFullscreenModal()">✕ Close</button>
+      </div>
+      <div class="modal-body">
+        <img id="modal-image" alt="Detection View Fullscreen">
+      </div>
+    </div>
+  </div>
+
+  <canvas id="hidden-webcam-snapshot" class="hidden"></canvas>
+
+  <!-- Footer -->
+  <footer>
+    <strong>BiomedicalWasteAI</strong> — Intelligent Real-Time Biomedical Waste Detection & Segregation System • CPCB & WHO Protocol Adherence
+  </footer>
+
+  <!-- =========================================================
+       FRONTEND JAVASCRIPT
+  ========================================================= -->
+  <script>
+    // State
+    let currentConf = 0.25;
+    let currentIou = 0.45;
+    let selectedBase64Image = null;
+    let isAnalyzing = false;
+    let activeViewMode = 'dual';
+    let webcamStream = null;
+    let webcamFrameTimer = null;
+    let isWebcamFrozen = false;
+
+    // Initialize System Metadata on Page Load
+    document.addEventListener('DOMContentLoaded', () => {
+      fetchServerInfo();
+      setupPasteListener();
+      setupDragDrop();
+    });
+
+    function fetchServerInfo() {
+      fetch('/api/info')
+        .then(res => res.json())
+        .then(data => {
+          document.getElementById('system-status-text').innerText = `AI Segregation Engine Active (${data.num_classes || 14} Classes)`;
+
+          // Render Classes Tags
+          const classesContainer = document.getElementById('classes-list-container');
+          if (classesContainer && data.classes) {
+            classesContainer.innerHTML = '';
+            Object.values(data.classes).forEach(cls => {
+              const tag = document.createElement('div');
+              tag.className = 'class-tag';
+              tag.innerHTML = `<span>🏷️</span><span>${cls}</span>`;
+              classesContainer.appendChild(tag);
+            });
+          }
+        })
+        .catch(err => {
+          console.error("Failed to load /api/info:", err);
+          document.getElementById('system-status-text').innerText = "AI Segregation Engine Active";
+        });
+    }
+
+    // Tab Navigation
+    function switchTab(tabId) {
+      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+      document.getElementById('tab-btn-' + tabId).classList.add('active');
+
+      const tabs = ['detection', 'webcam', 'system', 'guidelines'];
+      tabs.forEach(t => {
+        const el = document.getElementById('tab-content-' + t);
+        if (el) {
+          if (t === tabId) {
+            el.classList.remove('hidden');
+          } else {
+            el.classList.add('hidden');
+          }
+        }
+      });
+
+      if (tabId !== 'webcam') {
+        stopCamera();
+      }
+    }
+
+    // View Mode Toggle (Side-by-Side vs Annotated Only vs Original Only)
+    function setViewMode(mode) {
+      activeViewMode = mode;
+      document.querySelectorAll('.view-btn').forEach(b => b.classList.remove('active'));
+      const activeBtn = document.getElementById('view-mode-' + mode);
+      if (activeBtn) activeBtn.classList.add('active');
+
+      const container = document.getElementById('previews-container');
+      const colOrig = document.getElementById('preview-col-original');
+      const colAnno = document.getElementById('preview-col-annotated');
+
+      if (mode === 'dual') {
+        container.className = 'previews-grid';
+        colOrig.classList.remove('hidden');
+        colAnno.classList.remove('hidden');
+      } else if (mode === 'annotated') {
+        container.className = 'previews-grid single-view';
+        colOrig.classList.add('hidden');
+        colAnno.classList.remove('hidden');
+      } else if (mode === 'original') {
+        container.className = 'previews-grid single-view';
+        colOrig.classList.remove('hidden');
+        colAnno.classList.add('hidden');
+      }
+    }
+
+    // Sliders
+    function updateParam(param, value) {
+      if (param === 'conf') {
+        currentConf = parseFloat(value);
+        document.getElementById('conf-val').innerText = Math.round(currentConf * 100) + '%';
+      } else if (param === 'iou') {
+        currentIou = parseFloat(value);
+        document.getElementById('iou-val').innerText = Math.round(currentIou * 100) + '%';
+      }
+
+      // If an image is already loaded and not currently running, re-trigger
+      if (selectedBase64Image && !isAnalyzing) {
+        triggerDetection();
+      }
+    }
+
+    // Drag and Drop
+    function setupDragDrop() {
+      const dz = document.getElementById('dropzone');
+      ['dragenter', 'dragover'].forEach(eventName => {
+        dz.addEventListener(eventName, (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          dz.classList.add('dragover');
+        });
+      });
+
+      ['dragleave', 'drop'].forEach(eventName => {
+        dz.addEventListener(eventName, (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          dz.classList.remove('dragover');
+        });
+      });
+
+      dz.addEventListener('drop', (e) => {
+        const dt = e.dataTransfer;
+        const files = dt.files;
+        if (files && files.length > 0) {
+          processFile(files[0]);
+        }
+      });
+    }
+
+    // Clipboard Paste
+    function setupPasteListener() {
+      window.addEventListener('paste', (e) => {
+        const items = (e.clipboardData || e.originalEvent.clipboardData).items;
+        for (let index in items) {
+          const item = items[index];
+          if (item.kind === 'file' && item.type.startsWith('image/')) {
+            const blob = item.getAsFile();
+            processFile(blob);
+            break;
+          }
+        }
+      });
+    }
+
+    // File Selection
+    function handleFileSelect(e) {
+      if (e.target.files && e.target.files[0]) {
+        processFile(e.target.files[0]);
+      }
+    }
+
+    function processFile(file) {
+      if (!file.type.startsWith('image/')) {
+        showError("Invalid file type: Please select an image file (JPG, PNG, or WEBP).");
+        return;
+      }
+
+      // Clear any prior error
+      hideError();
+
+      const reader = new FileReader();
+      reader.onload = function(evt) {
+        const dataUrl = evt.target.result;
+        setImageData(dataUrl, file.name || "uploaded_sample.jpg", file.size);
+      };
+      reader.onerror = function() {
+        showError("Failed to read image file from local disk.");
+      };
+      reader.readAsDataURL(file);
+    }
+
+    function setImageData(dataUrl, name, sizeBytes) {
+      selectedBase64Image = dataUrl;
+
+      // Update file selected bar
+      document.getElementById('file-selected-bar').style.display = 'flex';
+      document.getElementById('file-thumb').src = dataUrl;
+      document.getElementById('selected-file-name').innerText = name;
+      document.getElementById('selected-file-size').innerText = sizeBytes ? (sizeBytes / 1024).toFixed(1) + ' KB' : '';
+
+      // Update Original image viewport
+      const imgOrig = document.getElementById('img-original');
+      imgOrig.src = dataUrl;
+      imgOrig.classList.remove('hidden');
+      document.getElementById('original-empty').classList.add('hidden');
+
+      imgOrig.onload = function() {
+        document.getElementById('original-res-text').innerText = `${this.naturalWidth} × ${this.naturalHeight}px`;
+      };
+
+      // Enable Predict button
+      document.getElementById('btn-detect').disabled = false;
+      document.getElementById('timing-chip').innerText = "Image Loaded";
+
+      // Automatically trigger detection for smooth user experience
+      triggerDetection();
+    }
+
+    function clearSelectedImage() {
+      selectedBase64Image = null;
+      document.getElementById('file-selected-bar').style.display = 'none';
+      document.getElementById('file-input').value = '';
+      
+      const imgOrig = document.getElementById('img-original');
+      imgOrig.src = '';
+      imgOrig.classList.add('hidden');
+      document.getElementById('original-empty').classList.remove('hidden');
+      document.getElementById('original-res-text').innerText = '—';
+
+      const imgAnno = document.getElementById('img-annotated');
+      imgAnno.src = '';
+      imgAnno.classList.add('hidden');
+      document.getElementById('annotated-empty').classList.remove('hidden');
+
+      document.getElementById('btn-detect').disabled = true;
+      document.getElementById('btn-maximize').disabled = true;
+      document.getElementById('timing-chip').innerText = "Ready";
+
+      resetResults();
+      hideError();
+    }
+
+    // Quick-Load Test Set Sample
+    function loadSampleImage(filename, displayName) {
+      hideError();
+      document.getElementById('timing-chip').innerText = "Loading sample...";
+      
+      fetch('/api/sample/' + filename)
+        .then(res => {
+          if (!res.ok) throw new Error("Sample file not found on server.");
+          return res.blob();
+        })
+        .then(blob => {
+          const reader = new FileReader();
+          reader.onload = function(e) {
+            setImageData(e.target.result, displayName + " (Test Set)", blob.size);
+          };
+          reader.readAsDataURL(blob);
+        })
+        .catch(err => {
+          showError("Could not load sample: " + err.message);
+          document.getElementById('timing-chip').innerText = "Error";
+        });
+    }
+
+    // Detection Inference Dispatch
+    function triggerDetection() {
+      if (!selectedBase64Image || isAnalyzing) return;
+
+      isAnalyzing = true;
+      hideError();
+      
+      const btn = document.getElementById('btn-detect');
+      btn.disabled = true;
+      document.getElementById('btn-detect-icon').innerText = "⏳";
+      document.getElementById('btn-detect-text').innerText = "Processing...";
+      document.getElementById('inference-loading').style.display = 'flex';
+      document.getElementById('timing-chip').innerText = "Inferring...";
+
+      const payload = {
+        image: selectedBase64Image,
+        conf: currentConf,
+        iou: currentIou,
+        imgsz: 640
+      };
+
+      fetch('/api/predict', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      })
+      .then(res => {
+        if (!res.ok) {
+          return res.json().then(d => { throw new Error(d.error || `HTTP ${res.status}`); });
+        }
+        return res.json();
+      })
+      .then(data => {
+        renderDetectionResults(data);
+      })
+      .catch(err => {
+        console.error("Prediction error:", err);
+        showError("Inference failed: " + err.message);
+      })
+      .finally(() => {
+        isAnalyzing = false;
+        btn.disabled = false;
+        document.getElementById('btn-detect-icon').innerText = "🔍";
+        document.getElementById('btn-detect-text').innerText = "Detect & Segregate Waste";
+        document.getElementById('inference-loading').style.display = 'none';
+      });
+    }
+
+    // Render Results
+    function renderDetectionResults(data) {
+      document.getElementById('timing-chip').innerText = `Done in ${data.inference_ms}ms`;
+      document.getElementById('stat-latency-val').innerText = `${data.inference_ms}ms`;
+      document.getElementById('stat-detections-num').innerText = data.num_detections;
+      document.getElementById('results-count-badge').innerText = `${data.num_detections} item${data.num_detections === 1 ? '' : 's'} detected`;
+
+      // Render Annotated Image
+      const imgAnno = document.getElementById('img-annotated');
+      if (data.annotated_image_base64) {
+        imgAnno.src = 'data:image/jpeg;base64,' + data.annotated_image_base64;
+        imgAnno.classList.remove('hidden');
+        document.getElementById('annotated-empty').classList.add('hidden');
+        document.getElementById('btn-maximize').disabled = false;
+      }
+
+      const listContainer = document.getElementById('segregation-list');
+      const zeroBanner = document.getElementById('zero-detections-banner');
+
+      if (!data.detections || data.detections.length === 0) {
+        // Zero detections state
+        zeroBanner.classList.remove('hidden');
+        document.getElementById('zero-conf-text').innerText = Math.round(currentConf * 100) + '%';
+        listContainer.innerHTML = '';
+        document.getElementById('stat-bins-summary').innerText = "None (Clean Scan)";
+        return;
+      }
+
+      // Hide zero banner
+      zeroBanner.classList.add('hidden');
+      listContainer.innerHTML = '';
+
+      // Count unique bins
+      const binCounts = {};
+      data.detections.forEach(det => {
+        const b = det.segregation.bin || 'General';
+        binCounts[b] = (binCounts[b] || 0) + 1;
+      });
+
+      const binSummaryText = Object.entries(binCounts)
+        .map(([k, v]) => `${v}× ${k}`)
+        .join(', ');
+      document.getElementById('stat-bins-summary').innerText = binSummaryText;
+
+      // Populate Segregation Cards
+      data.detections.forEach(det => {
+        const seg = det.segregation;
+        const confPct = Math.round(det.confidence * 100);
+        
+        let pillClass = 'bin-pill-yellow';
+        if (seg.bin.includes('Red')) pillClass = 'bin-pill-red';
+        else if (seg.bin.includes('White')) pillClass = 'bin-pill-white';
+        else if (seg.bin.includes('Blue')) pillClass = 'bin-pill-blue';
+
+        const card = document.createElement('div');
+        card.className = 'item-card';
+        card.innerHTML = `
+          <div class="item-main-info">
+            <div class="item-title-row">
+              <span class="item-name">${det.class_name}</span>
+              <span class="confidence-badge">${confPct}% confidence</span>
+              <span class="card-badge" style="font-size: 10px;">BBox: [${det.bbox_xyxy.join(', ')}]</span>
+            </div>
+            <div class="item-category"><strong>Category:</strong> ${seg.category}</div>
+            <div class="item-disposal"><strong>Disposal Standard:</strong> ${seg.disposal}</div>
+            <div class="item-hazard">⚠️ ${seg.hazard}</div>
+          </div>
+          <div>
+            <div class="bin-legend-pill ${pillClass}" style="font-size: 12.5px; padding: 7px 14px;">
+              ${seg.bin}
+            </div>
+          </div>
+        `;
+        listContainer.appendChild(card);
+      });
+    }
+
+    function resetResults() {
+      document.getElementById('stat-latency-val').innerText = '—';
+      document.getElementById('stat-detections-num').innerText = '0';
+      document.getElementById('results-count-badge').innerText = '0 items detected';
+      document.getElementById('stat-bins-summary').innerText = '—';
+      document.getElementById('zero-detections-banner').classList.add('hidden');
+      document.getElementById('segregation-list').innerHTML = `
+        <div style="padding: 20px; text-align: center; color: var(--text-dim); font-size: 13px;">
+          Upload an image or pick a test sample above to see itemized binning protocols.
+        </div>
+      `;
+    }
+
+    function showError(msg) {
+      const err = document.getElementById('error-banner');
+      err.innerText = "⚠️ " + msg;
+      err.style.display = 'block';
+    }
+
+    function hideError() {
+      const err = document.getElementById('error-banner');
+      err.style.display = 'none';
+      err.innerText = '';
+    }
+
+    // Fullscreen Modal
+    function openFullscreenModal() {
+      const img = document.getElementById('img-annotated');
+      if (img && img.src && !img.classList.contains('hidden')) {
+        document.getElementById('modal-image').src = img.src;
+        document.getElementById('image-modal').style.display = 'flex';
+      }
+    }
+
+    function closeFullscreenModal() {
+      document.getElementById('image-modal').style.display = 'none';
+    }
+
+    // =========================================================
+    // WEBCAM STREAMING
+    // =========================================================
+    function startCamera() {
+      const video = document.getElementById('webcam-video');
+      const placeholder = document.getElementById('webcam-placeholder');
+      const chip = document.getElementById('webcam-status-chip');
+
+      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        alert("Webcam is not supported or permitted in this browser environment.");
+        return;
+      }
+
+      navigator.mediaDevices.getUserMedia({ video: { width: 640, height: 480 } })
+        .then(stream => {
+          webcamStream = stream;
+          video.srcObject = stream;
+          placeholder.classList.add('hidden');
+          
+          document.getElementById('btn-cam-start').classList.add('hidden');
+          document.getElementById('btn-cam-stop').classList.remove('hidden');
+          document.getElementById('btn-cam-freeze').classList.remove('hidden');
+          
+          chip.innerText = "Camera Active (Streaming)";
+          chip.style.background = "var(--primary-light)";
+          chip.style.color = "var(--primary)";
+
+          isWebcamFrozen = false;
+          startWebcamLoop();
+        })
+        .catch(err => {
+          console.error("Camera access error:", err);
+          alert("Could not access webcam: " + err.message);
+        });
+    }
+
+    function stopCamera() {
+      if (webcamStream) {
+        webcamStream.getTracks().forEach(track => track.stop());
+        webcamStream = null;
+      }
+      if (webcamFrameTimer) {
+        clearTimeout(webcamFrameTimer);
+        webcamFrameTimer = null;
+      }
+
+      const video = document.getElementById('webcam-video');
+      video.srcObject = null;
+      document.getElementById('webcam-placeholder').classList.remove('hidden');
+      
+      const canvas = document.getElementById('webcam-canvas');
+      const ctx = canvas.getContext('2d');
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      document.getElementById('btn-cam-start').classList.remove('hidden');
+      document.getElementById('btn-cam-stop').classList.add('hidden');
+      document.getElementById('btn-cam-freeze').classList.add('hidden');
+      
+      const chip = document.getElementById('webcam-status-chip');
+      chip.innerText = "Camera Standby";
+      chip.style.background = "var(--bg-alt)";
+      chip.style.color = "var(--text-muted)";
+      
+      document.getElementById('live-items-count').innerText = "0 items";
+    }
+
+    function toggleFreezeCamera() {
+      const btn = document.getElementById('btn-cam-freeze');
+      const chip = document.getElementById('webcam-status-chip');
+      isWebcamFrozen = !isWebcamFrozen;
+      
+      if (isWebcamFrozen) {
+        btn.innerText = "▶ Resume Stream";
+        chip.innerText = "Stream Paused (Frozen)";
+      } else {
+        btn.innerText = "⏸ Freeze Frame";
+        chip.innerText = "Camera Active (Streaming)";
+        startWebcamLoop();
+      }
+    }
+
+    function startWebcamLoop() {
+      if (!webcamStream || isWebcamFrozen) return;
+
+      const video = document.getElementById('webcam-video');
+      if (video.readyState >= 2) {
+        captureAndAnalyzeFrame();
+      } else {
+        webcamFrameTimer = setTimeout(startWebcamLoop, 150);
+      }
+    }
+
+    function captureAndAnalyzeFrame() {
+      if (!webcamStream || isWebcamFrozen) return;
+
+      const video = document.getElementById('webcam-video');
+      const hiddenCanvas = document.getElementById('hidden-webcam-snapshot');
+      hiddenCanvas.width = video.videoWidth || 640;
+      hiddenCanvas.height = video.videoHeight || 480;
+
+      const ctx = hiddenCanvas.getContext('2d');
+      ctx.drawImage(video, 0, 0, hiddenCanvas.width, hiddenCanvas.height);
+      const b64 = hiddenCanvas.toDataURL('image/jpeg', 0.7);
+
+      fetch('/api/predict', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ image: b64, conf: currentConf, iou: currentIou, imgsz: 480 })
+      })
+      .then(res => res.json())
+      .then(data => {
+        drawWebcamBoxes(data.detections, video.videoWidth, video.videoHeight);
+        updateLiveList(data.detections);
+      })
+      .catch(err => {
+        // Silent catch for frame loop
+      })
+      .finally(() => {
+        if (webcamStream && !isWebcamFrozen) {
+          webcamFrameTimer = setTimeout(startWebcamLoop, 200);
+        }
+      });
+    }
+
+    function drawWebcamBoxes(detections, vW, vH) {
+      const canvas = document.getElementById('webcam-canvas');
+      canvas.width = vW;
+      canvas.height = vH;
+      const ctx = canvas.getContext('2d');
+      ctx.clearRect(0, 0, vW, vH);
+
+      if (!detections || detections.length === 0) return;
+
+      detections.forEach(det => {
+        const [x1, y1, x2, y2] = det.bbox_xyxy;
+        const w = x2 - x1;
+        const h = y2 - y1;
+        
+        let boxColor = '#059669';
+        if (det.segregation.bin.includes('Yellow')) boxColor = '#d97706';
+        else if (det.segregation.bin.includes('Red')) boxColor = '#dc2626';
+        else if (det.segregation.bin.includes('Blue')) boxColor = '#0284c7';
+        else if (det.segregation.bin.includes('White')) boxColor = '#334155';
+
+        // Draw bounding box
+        ctx.strokeStyle = boxColor;
+        ctx.lineWidth = 3;
+        ctx.strokeRect(x1, y1, w, h);
+
+        // Label pill
+        const label = `${det.class_name} (${Math.round(det.confidence * 100)}%) ➔ ${det.segregation.bin}`;
+        ctx.font = 'bold 12px sans-serif';
+        const txtWidth = ctx.measureText(label).width;
+
+        ctx.fillStyle = boxColor;
+        ctx.fillRect(x1, Math.max(0, y1 - 22), txtWidth + 12, 22);
+
+        ctx.fillStyle = '#ffffff';
+        ctx.fillText(label, x1 + 6, Math.max(15, y1 - 6));
+      });
+    }
+
+    function updateLiveList(detections) {
+      const container = document.getElementById('live-webcam-list');
+      const countBadge = document.getElementById('live-items-count');
+      
+      if (!detections || detections.length === 0) {
+        countBadge.innerText = '0 items';
+        container.innerHTML = '<div style="padding: 16px; text-align: center; color: var(--text-dim); font-size: 12px;">Scanning camera view...</div>';
+        return;
+      }
+
+      countBadge.innerText = `${detections.length} item${detections.length === 1 ? '' : 's'}`;
+      container.innerHTML = '';
+
+      detections.forEach(d => {
+        let pillClass = 'bin-pill-yellow';
+        if (d.segregation.bin.includes('Red')) pillClass = 'bin-pill-red';
+        else if (d.segregation.bin.includes('White')) pillClass = 'bin-pill-white';
+        else if (d.segregation.bin.includes('Blue')) pillClass = 'bin-pill-blue';
+
+        const row = document.createElement('div');
+        row.className = 'live-item-row';
+        row.innerHTML = `
+          <div>
+            <strong style="text-transform: capitalize;">${d.class_name}</strong>
+            <span style="font-size: 11px; color: var(--text-muted); margin-left: 4px;">(${Math.round(d.confidence * 100)}%)</span>
+          </div>
+          <span class="bin-legend-pill ${pillClass}" style="font-size: 10.5px; padding: 3px 8px;">
+            ${d.segregation.bin}
+          </span>
+        `;
+        container.appendChild(row);
+      });
+    }
+  </script>
+</body>
+</html>

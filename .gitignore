@@ -11,7 +11,13 @@ __pycache__/
 *.pyd
 .pytest_cache/
 
-# Ultralytics & Model Weights
+# Credentials & environment variables
+.env
+.env.*
+*.pem
+*.key
+
+# Ultralytics & Model Weights (Do NOT commit large weights by default)
 runs/
 *.pt
 *.onnx
@@ -25,14 +31,23 @@ models/*.onnx
 *.tar
 *.tar.gz
 
-# Dataset images and labels (do NOT push dataset images to Git)
+# Datasets (do NOT push dataset images and labels to Git)
 dataset/train/
 dataset/valid/
 dataset/test/
+dataset/sample_test_images/
+dataset_balanced/
+dataset_balanced_v2/
 
 # Keep dataset configuration tracked
 !dataset/data.yaml
 !dataset/README*.txt
+
+# Generated outputs & scratch files
+outputs/
+reports/baseline_smoke_test/
+*.log
+scratch/
 
 # IDE & OS specific files
 .vscode/*
