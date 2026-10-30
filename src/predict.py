@@ -39,7 +39,9 @@ BIOMEDICAL_WASTE_CLASSES = [
     "used syringe",
 ]
 
+PROJECT_ROOT = Path(__file__).resolve().parent.parent
 DEFAULT_WEIGHT_CANDIDATES = [
+    PROJECT_ROOT / 'models' / 'best.pt',
     Path("models/best.pt"),
     Path("runs/detect/runs/biomedical_waste/baseline/weights/best.pt"),
     Path("runs/detect/biomedical_waste_baseline/weights/best.pt"),

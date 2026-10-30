@@ -32,8 +32,8 @@ def parse_args():
     parser.add_argument(
         "--data",
         type=str,
-        default="dataset/data.yaml",
-        help="Path to dataset YAML file (default: dataset/data.yaml)",
+        default="combined_dataset_v2/data.yaml",
+        help="Path to dataset YAML file (default: combined_dataset_v2/data.yaml)",
     )
     # Training hyperparameters
     parser.add_argument(
@@ -45,8 +45,8 @@ def parse_args():
     parser.add_argument(
         "--batch",
         type=int,
-        default=16,
-        help="Batch size (default: 16; sensible baseline for 6GB-8GB+ VRAM)",
+        default=8,
+        help="Batch size (default: 8)",
     )
     parser.add_argument(
         "--imgsz",
@@ -58,15 +58,14 @@ def parse_args():
     parser.add_argument(
         "--device",
         type=str,
-        default=None,
-        help="Compute device: '0' for GPU 0, '0,1' for multi-GPU, 'cpu' for CPU. "
-             "Default automatically selects GPU if available, else CPU.",
+        default="0",
+        help="Compute device: '0' for GPU 0, '0,1' for multi-GPU, or 'cpu'.",
     )
     parser.add_argument(
         "--workers",
         type=int,
-        default=4,
-        help="Number of DataLoader worker threads (default: 4; set to 2 or 0 on Windows if encountering shared memory issues)",
+        default=0,
+        help="Number of DataLoader worker threads (default: 0)",
     )
     parser.add_argument(
         "--patience",
@@ -84,8 +83,8 @@ def parse_args():
     parser.add_argument(
         "--name",
         type=str,
-        default="biomedical_waste_baseline",
-        help="Experiment run name (default: biomedical_waste_baseline)",
+        default="biomedical_waste_combined_v2",
+        help="Experiment run name (default: biomedical_waste_combined_v2)",
     )
     parser.add_argument(
         "--exist-ok",

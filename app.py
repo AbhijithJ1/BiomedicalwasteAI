@@ -32,8 +32,10 @@ from PIL import Image
 import torch
 from ultralytics import YOLO
 
-# Ensure root is in sys.path
-sys.path.insert(0, str(Path(__file__).resolve().parent))
+# Ensure root is in sys.path and working directory is set to app location
+APP_DIR = Path(__file__).resolve().parent
+sys.path.insert(0, str(APP_DIR))
+os.chdir(APP_DIR)
 from src.predict import BIOMEDICAL_WASTE_CLASSES, resolve_weights
 
 

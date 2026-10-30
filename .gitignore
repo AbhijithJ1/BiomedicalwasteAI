@@ -1,5 +1,6 @@
 # Virtual Environments
 .venv/
+.venv-*/
 venv/
 env/
 ENV/
@@ -39,6 +40,10 @@ dataset/test/
 dataset/sample_test_images/
 dataset_balanced/
 dataset_balanced_v2/
+combined_dataset/
+combined_dataset_v2/
+dataset_repairs/
+kaggle_dataset/
 
 # Keep dataset configuration tracked
 !dataset/data.yaml
@@ -49,6 +54,7 @@ outputs/
 reports/baseline_smoke_test/
 *.log
 scratch/
+*_preview.jpg
 
 # IDE & OS specific files
 .vscode/*

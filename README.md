@@ -128,7 +128,7 @@ python -m venv .venv
 **On Windows (Command Prompt):**
 ```cmd
 python -m venv .venv
-.\.venv\Scripts\activate.bat
+.\.venv\Scripts\activate.bat+-
 ```
 
 **On Linux / macOS:**
