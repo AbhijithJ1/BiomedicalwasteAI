@@ -1,5 +1,4 @@
-# BiomedicalWasteAI: Computer Vision-Based Biomedical Waste Detection and Intelligent Segregation
-
+# Medigrator: AI-Driven Medical Waste Detection and Intelligent Segregation
 An AI-powered computer vision system designed to detect, localize, and classify biomedical waste into standardized hospital disposal categories in real time using a custom-trained YOLOv11n model.
 
 > **Academic Scope:** This is a software and computer vision engineering project focusing on multi-class object detection and regulatory segregation guidance compliant with Central Pollution Control Board (CPCB) and World Health Organization (WHO) protocols. Physical robotic sorting hardware is outside the current scope.
